@@ -68,12 +68,9 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
       }
     );
 
-    const { data, error } = await supabase.auth.setSession({
-      access_token: token,
-      refresh_token: "",
-    });
+    const { data: { user }, error } = await supabase.auth.getUser(token);
 
-    if (error || !data?.user) {
+    if (error || !user) {
       console.error("[Supabase Auth Middleware Error]:", error);
       const payload = decodeJwt(token);
       const iss = payload?.iss || 'unknown';
@@ -88,11 +85,11 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
     return next({
       context: {
         supabase,
-        userId: data.user.id,
+        userId: user.id,
         claims: {
-          sub: data.user.id,
-          ...data.user.app_metadata,
-          ...data.user.user_metadata,
+          sub: user.id,
+          ...user.app_metadata,
+          ...user.user_metadata,
         } as any,
       },
     });
