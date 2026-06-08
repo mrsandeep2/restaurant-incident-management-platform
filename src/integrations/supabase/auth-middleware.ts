@@ -62,7 +62,7 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
 
     if (error || !data?.user) {
       console.error("[Supabase Auth Middleware Error]:", error);
-      throw new Error('Unauthorized: Invalid token');
+      throw new Error('Unauthorized: ' + (error?.message || 'Invalid token'));
     }
 
     return next({
