@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+.vercel/
 .output
 .vinxi
 .tanstack/**
@@ -31,3 +32,4 @@ dist-ssr
 *.sln
 *.sw?
 .env
+.Incident/
