@@ -6,6 +6,19 @@ import type { Database } from './types'
 
 
 
+function decodeJwt(token: string) {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = Buffer.from(base64, 'base64').toString('utf8');
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
+  }
+}
+
 export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server(
   async ({ next }) => {
     
@@ -62,7 +75,14 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
 
     if (error || !data?.user) {
       console.error("[Supabase Auth Middleware Error]:", error);
-      throw new Error('Unauthorized: ' + (error?.message || 'Invalid token'));
+      const payload = decodeJwt(token);
+      const iss = payload?.iss || 'unknown';
+      const keySnippet = SUPABASE_PUBLISHABLE_KEY ? (SUPABASE_PUBLISHABLE_KEY.slice(0, 10) + '...') : 'none';
+      throw new Error(
+        `Unauthorized: ${error?.message || 'Invalid token'}. ` +
+        `[JWT Issuer: ${iss}, Server SUPABASE_URL: ${SUPABASE_URL}, ` +
+        `Server Key Snippet: ${keySnippet}]`
+      );
     }
 
     return next({
