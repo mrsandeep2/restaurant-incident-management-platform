@@ -7,10 +7,12 @@ export const getMe = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const [{ data: profile }, { data: roles }] = await Promise.all([
+    const [{ data: profile, error: pErr }, { data: roles, error: rErr }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", userId),
     ]);
+    if (pErr) console.error("[getMe Profile Error]:", pErr);
+    if (rErr) console.error("[getMe Roles Error]:", rErr);
     return {
       userId,
       profile,
