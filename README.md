@@ -1,69 +1,93 @@
-# Sentry — Restaurant Incident Reporting Tool
+# Restaurant Incident Reporting Tool
 
-A production-quality SaaS for restaurant operations teams to report, triage,
-and resolve incidents across stores — with role-based access, an admin
-approval workflow, AI-assisted analysis, file attachments, and analytics.
+🔗 **Live Demo:** https://restaurant-incident-management-plat-phi.vercel.app/
 
-## Tech Stack
+🔗 **GitHub Repository:** https://github.com/mrsandeep2/restaurant-incident-management-platform
 
-- **Frontend:** React 19, TanStack Start (Router + Server Functions), Vite 7
-- **Styling:** Tailwind CSS v4, shadcn/ui, Framer Motion
-- **Backend:** Postgres + Auth + Storage (managed), RLS-secured
-- **AI:** Google Gemini (via secure server-side gateway)
-- **Charts:** Recharts
+A web-based platform for reporting, tracking, and managing restaurant operational incidents. The system supports role-based access control, incident lifecycle management, analytics, file attachments, and AI-powered incident analysis.
 
 ## Features
 
-- Email/password auth with admin approval workflow (pending → approved/rejected)
-- Three fixed roles: **Staff**, **Manager**, **Admin** — enforced via RLS + route guards
-- Incident submission with category, severity, store, attachments
-- Dashboard with KPIs, monthly trends, severity & category charts
-- Incident detail view with status workflow, comments, and activity timeline
-- AI summary, category prediction, severity recommendation, resolution suggestions
-- Store management, user approval center, and audit log (admin only)
-- CSV export, search, multi-filter
+- Incident Reporting & Management
+- Incident Dashboard
+- Search & Filtering
+- Role-Based Access Control (Staff, Manager, Admin)
+- User Approval Workflow
+- File Attachments
+- Analytics Dashboard
+- Audit Logs
+- AI-Powered Incident Analysis
+
+## Tech Stack
+
+### Frontend
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+
+### Backend & Database
+- Supabase Authentication
+- Supabase PostgreSQL Database
+- Supabase Storage
+
+### AI Integration
+- Google Gemini AI
+
+### Deployment
+- Vercel
+
+### Additional Libraries
+- Recharts
+- Framer Motion
 
 ## Demo Accounts
 
-| Role    | Email                      | Password    |
-| ------- | -------------------------- | ----------- |
-| Admin   | admin@restaurant.com       | Admin@123   |
-| Manager | manager@restaurant.com     | Manager@123 |
-| Staff   | staff@restaurant.com       | Staff@123   |
+| Role | Email | Password |
+|--------|--------|--------|
+| Admin | admin@restaurant.com | Admin@123 |
+| Manager | manager@restaurant.com | Manager@123 |
+| Staff | staff@restaurant.com | Staff@123 |
+
+## User Roles
+
+### Staff
+- Create incidents
+- View own incidents
+- Upload attachments
+- Track incident status
+
+### Manager
+- Review incidents
+- Update incident status
+- Change severity
+- View analytics
+
+### Admin
+- Approve users
+- Assign roles
+- Manage users
+- Manage stores
+- View audit logs
+
+## AI Features
+
+- Incident Summary
+- Category Prediction
+- Severity Recommendation
+- Resolution Suggestions
 
 ## Getting Started
 
 ```bash
-bun install
-bun run dev
+npm install
+npm run dev
 ```
 
-The app runs on http://localhost:5173.
+## Submission Links
 
-## Environment
+**Live Application:**  
+https://restaurant-incident-management-plat-phi.vercel.app/
 
-Server-side secrets (already wired in this project):
-
-- `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
-- `LOVABLE_API_KEY` — AI gateway key (server-only, never exposed to the browser)
-
-Client-visible:
-
-- `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`
-
-## Project Structure
-
-```
-src/
-  routes/                 # File-based routing (TanStack Router)
-    _authenticated/       # Protected app (dashboard, incidents, analytics, …)
-    auth.tsx              # Sign-in / sign-up
-  lib/                    # Server functions and shared utilities
-  components/             # UI components (shadcn-based)
-  integrations/supabase/  # Auth-aware DB clients
-supabase/migrations/      # Versioned schema + RLS + seed data
-```
-
-## License
-
-MIT
+**GitHub Repository:**  
+https://github.com/mrsandeep2/restaurant-incident-management-platform
