@@ -118,7 +118,12 @@ function AuthPage() {
           );
         } else {
           await supabase.auth.signOut();
-          toast.error("Your account is awaiting administrator approval.", { duration: 8000 });
+          toast.error(
+            access.rejection_reason
+              ? `Your account is awaiting administrator approval. ${access.rejection_reason}`
+              : "Your account is awaiting administrator approval.",
+            { duration: 8000 },
+          );
         }
       }
     } catch (err) {

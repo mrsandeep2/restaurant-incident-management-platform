@@ -193,10 +193,11 @@ export const checkAccountAccess = createServerFn({ method: "GET" })
       .eq("user_id", userId);
     const status = profile?.status ?? "pending";
     const hasRole = (roles ?? []).length > 0;
+    const roleList = (roles ?? []).map((r) => r.role).join(', ');
     return {
       status,
       hasRole,
-      rejection_reason: profile?.rejection_reason ?? null,
+      rejection_reason: profile?.rejection_reason || `[Debug: DB Status="${status}", Roles=[${roleList}], ProfileExist=${!!profile}]`,
       allowed: status === "approved" && hasRole,
     };
   });
