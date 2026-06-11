@@ -2,25 +2,54 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
-const MODEL = "google/gemini-3-flash-preview";
+async function callGemini(
+  systemInstruction: string,
+  userPrompt: string,
+  responseSchema?: unknown
+) {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) throw new Error("GEMINI_API_KEY missing");
+  const model = "gemini-2.5-flash";
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
-async function callAI(messages: Array<{ role: string; content: string }>, response_format?: unknown) {
-  const key = process.env.LOVABLE_API_KEY;
-  if (!key) throw new Error("LOVABLE_API_KEY missing");
-  const res = await fetch(GATEWAY, {
+  const payload: any = {
+    contents: [
+      {
+        role: "user",
+        parts: [{ text: userPrompt }]
+      }
+    ],
+    systemInstruction: {
+      parts: [{ text: systemInstruction }]
+    }
+  };
+
+  if (responseSchema) {
+    payload.generationConfig = {
+      responseMimeType: "application/json",
+      responseSchema: responseSchema
+    };
+  }
+
+  const res = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${key}`,
     },
-    body: JSON.stringify({ model: MODEL, messages, response_format }),
+    body: JSON.stringify(payload),
   });
-  if (res.status === 429) throw new Error("AI rate limit reached — try again shortly.");
-  if (res.status === 402) throw new Error("AI credits exhausted — please top up.");
-  if (!res.ok) throw new Error(`AI error: ${res.status}`);
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    throw new Error(`Gemini API error: ${res.status}. Details: ${errText}`);
+  }
+
   const j = await res.json();
-  return j.choices?.[0]?.message?.content as string;
+  const text = j.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) {
+    throw new Error("Invalid response structure from Gemini API");
+  }
+  return text;
 }
 
 export const aiAnalyzeIncident = createServerFn({ method: "POST" })
@@ -33,14 +62,33 @@ export const aiAnalyzeIncident = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const sys =
-      "You are an operations expert for restaurants. Analyze the incident and respond as STRICT JSON with keys: summary (1-2 sentence neutral summary), category (one of: pos, delivery, inventory, kitchen, customer, staff, hygiene, safety, payment, other), severity (one of: low, medium, high, critical), suggestions (array of 3 short actionable resolution steps). No prose outside JSON.";
-    const raw = await callAI(
-      [
-        { role: "system", content: sys },
-        { role: "user", content: `Title: ${data.title}\n\nDescription: ${data.description}` },
-      ],
-      { type: "json_object" },
+      "You are an operations expert for restaurants. Analyze the incident and respond as STRICT JSON with keys: summary (1-2 sentence neutral summary), category, severity, suggestions (array of 3 short actionable resolution steps).";
+    const schema = {
+      type: "OBJECT",
+      properties: {
+        summary: { type: "STRING" },
+        category: {
+          type: "STRING",
+          enum: ["pos", "delivery", "inventory", "kitchen", "customer", "staff", "hygiene", "safety", "payment", "other"]
+        },
+        severity: {
+          type: "STRING",
+          enum: ["low", "medium", "high", "critical"]
+        },
+        suggestions: {
+          type: "ARRAY",
+          items: { type: "STRING" }
+        }
+      },
+      required: ["summary", "category", "severity", "suggestions"]
+    };
+
+    const raw = await callGemini(
+      sys,
+      `Title: ${data.title}\n\nDescription: ${data.description}`,
+      schema
     );
+
     try {
       const json = JSON.parse(raw);
       return json as {
@@ -68,9 +116,6 @@ export const aiInsights = createServerFn({ method: "GET" })
     ).join("\n");
     const sys =
       "You are an operations analyst. Given recent restaurant incidents, output 3-5 sharp insights (markdown bullet list, <120 words total) covering recurring problems, risk hotspots, and one priority action.";
-    const text = await callAI([
-      { role: "system", content: sys },
-      { role: "user", content: sample },
-    ]);
+    const text = await callGemini(sys, sample);
     return { insights: text };
   });
